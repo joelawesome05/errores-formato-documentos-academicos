@@ -49,6 +49,7 @@ class FileInput extends Component {
     render() {
         return (
             <div style={{ color: "black" }}>
+            <h2> Documentos </h2>
                 <form onSubmit={this.handleSubmit} id="singleUploadForm" name="singleUploadForm">
                     <label>
                         Upload file:
