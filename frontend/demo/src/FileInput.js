@@ -26,7 +26,6 @@ class FileInput extends Component {
     uploadSingleFile(file) {
         var formData = new FormData();
         formData.append("file", file);
-
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "api/uploadFile");
 
@@ -42,14 +41,14 @@ class FileInput extends Component {
                 singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
             }
         }
-        xhr.send(formData);
-        this.props.history.push(`/verResultados/${file.name}`);
+        this.props.history.push(`/verResultados/${encodeURI(file.name)}`);
+
     }
 
     render() {
         return (
             <div style={{ color: "black" }}>
-            <h2> Documentos </h2>
+                <h2> Documentos </h2>
                 <form onSubmit={this.handleSubmit} id="singleUploadForm" name="singleUploadForm">
                     <label>
                         Upload file:
