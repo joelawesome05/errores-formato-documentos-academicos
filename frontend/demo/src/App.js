@@ -54,7 +54,7 @@ class App extends Component<Props, State> {
 
   constructor(props) {
     super(props);
-    url = "https://joel-seminario-errores-formato.herokuapp.com/downloadFile/" + `${this.props.match.params.name}`;
+    url = "https://joel-seminario-errores-formato.herokuapp.com/downloadFile/" + `${encodeURI(this.props.match.params.name)}`;
   }
 
   state = {
