@@ -41,6 +41,7 @@ class FileInput extends Component {
                 singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
             }
         }
+        xhr.send(formData);
         this.props.history.push(`/verResultados/${encodeURI(file.name)}`);
 
     }
