@@ -20,7 +20,7 @@ class FileInput extends Component {
             singleFileUploadError.style.display = "block";
         }
         this.uploadSingleFile(files[0]);
-
+        setTimeout(function () { this.props.history.push(`/verResultados/${encodeURI(files[0].name)}`) }.bind(this), 3000);
     }
 
     uploadSingleFile(file) {
@@ -34,7 +34,7 @@ class FileInput extends Component {
             var response = JSON.parse(xhr.responseText);
             if (xhr.status == 200) {
                 singleFileUploadError.style.display = "none";
-                singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>Resultados : <a href='/verResultados/" + response.fileName + "' target='_blank'>" + "Ver reslutados" + "</a></p>";
+                singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p> <p> Porfavor Espere un momento</p>";
                 singleFileUploadSuccess.style.display = "block";
             } else {
                 singleFileUploadSuccess.style.display = "none";
@@ -42,14 +42,12 @@ class FileInput extends Component {
             }
         }
         xhr.send(formData);
-        this.props.history.push(`/verResultados/${encodeURI(file.name)}`);
-
     }
 
     render() {
         return (
             <div style={{ color: "black" }}>
-                <h2> Documentos </h2>
+                <h5> Ingrese su pdf aqui </h5>
                 <form onSubmit={this.handleSubmit} id="singleUploadForm" name="singleUploadForm">
                     <label>
                         Upload file:
