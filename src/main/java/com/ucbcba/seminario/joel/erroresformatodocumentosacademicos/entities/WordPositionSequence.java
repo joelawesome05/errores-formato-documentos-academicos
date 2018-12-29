@@ -64,7 +64,7 @@ public class WordPositionSequence implements CharSequence {
     }
 
     public float getYUpper() {
-        return textPositions.get(start).getYDirAdj() - textPositions.get(start).getHeight();
+        return textPositions.get(start).getYDirAdj() - textPositions.get(start).getFontSizeInPt();
     }
 
 
@@ -75,6 +75,6 @@ public class WordPositionSequence implements CharSequence {
 
     public float getFontSize() {
         TextPosition first = textPositions.get(start);
-        return first.getFontSizeInPt();
+        return first.getFontSize();
     }
 }

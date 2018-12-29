@@ -20,7 +20,7 @@ class FileInput extends Component {
             singleFileUploadError.style.display = "block";
         }
         this.uploadSingleFile(files[0]);
-        setTimeout(function () { this.props.history.push(`/verResultados/${encodeURI(files[0].name)}`) }.bind(this), 3000);
+        setTimeout(function () { this.props.history.push(`/verResultados/${encodeURI(files[0].name)}`) }.bind(this), 5000);
     }
 
     uploadSingleFile(file) {
