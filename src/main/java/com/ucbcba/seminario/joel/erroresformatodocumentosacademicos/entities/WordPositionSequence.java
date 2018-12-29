@@ -75,6 +75,6 @@ public class WordPositionSequence implements CharSequence {
 
     public float getFontSize() {
         TextPosition first = textPositions.get(start);
-        return first.getFontSize();
+        return Math.round(first.getFontSize());
     }
 }

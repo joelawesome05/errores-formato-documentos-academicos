@@ -95,7 +95,7 @@ public class MisstakesDetector {
                     List<BoundingRect> boundingRects = new ArrayList<>();
                     boundingRects.add(boundingRect);
                     Position position = new Position(boundingRect,boundingRects,page);
-                    Comment comment = new Comment("Por favor verifique: <br/>Tamaño de la letra: 18 puntos <br/>Fuente: Times New Roman, en mayúscula, negrilla y centrado.","");
+                    Comment comment = new Comment("Por favor verifique: (Tamaño de la letra: 18 puntos - Fuente: Times New Roman, en mayúscula, negrilla y centrado).","");
                     formatMistakes.add(new FormatMistake(content,position,comment,1));
                 }
 
@@ -108,7 +108,7 @@ public class MisstakesDetector {
                     List<BoundingRect> boundingRects = new ArrayList<>();
                     boundingRects.add(boundingRect);
                     Position position = new Position(boundingRect,boundingRects,page);
-                    Comment comment = new Comment("Por favor verifique: <br/>Tamaño de la letra: 16 puntos <br/>Fuente: Times New Roman, en mayúscula, negrilla y centrado.","");
+                    Comment comment = new Comment("Por favor verifique: (Tamaño de la letra: 16 puntos - Fuente: Times New Roman, en mayúscula, negrilla y centrado).","");
                     formatMistakes.add(new FormatMistake(content,position,comment,2));
                 }
                 return formatMistakes;
@@ -132,7 +132,7 @@ public class MisstakesDetector {
             if (!wordUniversidad.get(0).getFont().contains("Times") || !wordUniversidad.get(0).getFont().contains("New") || !wordUniversidad.get(0).getFont().contains("Roman")){
                 return true;
             }
-            if (Math.round( wordUniversidad.get(0).getFontSize()) != 18){
+            if ( wordUniversidad.get(0).getFontSize() != 18){
                 return true;
             }
             if (!wordUniversidad.get(0).getFont().contains("Bold") ){
@@ -148,7 +148,7 @@ public class MisstakesDetector {
             if (!wordUnidad.get(0).getFont().contains("Times") || !wordUnidad.get(0).getFont().contains("New") || !wordUnidad.get(0).getFont().contains("Roman")){
                 return true;
             }
-            if (wordUnidad.get(0).getFontSize() != 15){
+            if (wordUnidad.get(0).getFontSize() != 16){
                 return true;
             }
             if (!wordUnidad.get(0).getFont().contains("Bold") ){
@@ -157,7 +157,7 @@ public class MisstakesDetector {
             if (!wordCbba.get(0).getFont().contains("Times") || !wordCbba.get(0).getFont().contains("New") || !wordCbba.get(0).getFont().contains("Roman")){
                 return true;
             }
-            if (Math.round( wordCbba.get(0).getFontSize()) != 16){
+            if (wordCbba.get(0).getFontSize() != 16){
                 return true;
             }
             if (!wordCbba.get(0).getFont().contains("Bold") ){
