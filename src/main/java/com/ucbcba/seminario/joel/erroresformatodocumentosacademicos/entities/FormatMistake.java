@@ -6,9 +6,9 @@ public class FormatMistake {
     private Content content;
     private Position position;
     private Comment comment;
-    private final long id;
+    private String id;
 
-    public FormatMistake(Content content, Position position, Comment comment, long id) {
+    public FormatMistake(Content content, Position position, Comment comment, String id) {
         this.content = content;
         this.position = position;
         this.comment = comment;
@@ -16,7 +16,7 @@ public class FormatMistake {
     }
 
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 

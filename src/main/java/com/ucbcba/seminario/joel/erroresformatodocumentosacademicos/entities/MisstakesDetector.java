@@ -7,10 +7,12 @@ import org.apache.pdfbox.text.TextPosition;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 public class MisstakesDetector {
     private PDDocument pdfdocument;
+    private final AtomicLong counter = new AtomicLong();
 
     public MisstakesDetector(PDDocument pdfdocument){
         this.pdfdocument = pdfdocument;
@@ -96,7 +98,7 @@ public class MisstakesDetector {
                     boundingRects.add(boundingRect);
                     Position position = new Position(boundingRect,boundingRects,page);
                     Comment comment = new Comment("Por favor verifique: (Tamaño de la letra: 18 puntos - Fuente: Times New Roman, en mayúscula, negrilla y centrado).","");
-                    formatMistakes.add(new FormatMistake(content,position,comment,1));
+                    formatMistakes.add(new FormatMistake(content,position,comment,String.valueOf(counter.incrementAndGet())));
                 }
 
                 List<WordPositionSequence> wordUnidad = findWordsFromAPage(page, "UNIDAD");
@@ -109,7 +111,7 @@ public class MisstakesDetector {
                     boundingRects.add(boundingRect);
                     Position position = new Position(boundingRect,boundingRects,page);
                     Comment comment = new Comment("Por favor verifique: (Tamaño de la letra: 16 puntos - Fuente: Times New Roman, en mayúscula, negrilla y centrado).","");
-                    formatMistakes.add(new FormatMistake(content,position,comment,2));
+                    formatMistakes.add(new FormatMistake(content,position,comment,String.valueOf(counter.incrementAndGet())));
                 }
                 return formatMistakes;
             }
