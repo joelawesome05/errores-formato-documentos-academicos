@@ -58,8 +58,7 @@ class App extends Component<Props, State> {
   }
 
   state = {
-    highlights: [],
-    link: ''
+    highlights: []
   };
 
   state: State;
@@ -80,7 +79,9 @@ class App extends Component<Props, State> {
     }
   };
 
-  componentDidMount() {
+  async componentDidMount() {
+    var missTakes = await (await fetch(`/api/misstakes/${encodeURI(this.props.match.params.name)}`)).json();
+    this.setState({ highlights: missTakes });
     window.addEventListener(
       "hashchange",
       this.scrollToHighlightFromHash,

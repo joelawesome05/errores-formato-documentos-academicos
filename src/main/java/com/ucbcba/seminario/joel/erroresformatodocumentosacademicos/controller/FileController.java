@@ -1,7 +1,9 @@
 package com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.controller;
 
+import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entities.FormatMistake;
 import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.payload.UploadFileResponse;
 import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.service.FileStorageService;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,6 +73,15 @@ public class FileController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+
+    @RequestMapping("/api/misstakes/{fileName:.+}")
+    public List<FormatMistake> greeting(@PathVariable String fileName) throws IOException {
+        List<FormatMistake> formatMistakes = new ArrayList<>();
+        String dirPdfFile = "uploads/"+fileName;
+        PDDocument pdfdocument = PDDocument.load( new File(dirPdfFile) );
+        return formatMistakes;
     }
 
 }
