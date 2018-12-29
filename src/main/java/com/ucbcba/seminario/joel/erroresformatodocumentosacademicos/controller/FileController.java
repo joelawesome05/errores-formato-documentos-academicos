@@ -1,6 +1,7 @@
 package com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.controller;
 
 import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entities.FormatMistake;
+import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entities.MisstakesDetector;
 import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.payload.UploadFileResponse;
 import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.service.FileStorageService;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -81,6 +82,8 @@ public class FileController {
         List<FormatMistake> formatMistakes = new ArrayList<>();
         String dirPdfFile = "uploads/"+fileName;
         PDDocument pdfdocument = PDDocument.load( new File(dirPdfFile) );
+        MisstakesDetector misstakesDetector = new MisstakesDetector(pdfdocument);
+        formatMistakes = misstakesDetector.getCoverPage();
         return formatMistakes;
     }
 
