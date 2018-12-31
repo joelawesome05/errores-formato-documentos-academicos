@@ -71,8 +71,8 @@ public class MisstakesDetector {
         for (int page = 1; page <= pdfdocument.getNumberOfPages(); page++){
             boolean coverPage = searcher.isTheCoverInThisPage(page);
             if ( coverPage ){
-                float pageWidth = pdfdocument.getPage(page).getMediaBox().getWidth();
-                float pageHeigh = pdfdocument.getPage(page).getMediaBox().getHeight();
+                float pageWidth = pdfdocument.getPage(page-1).getMediaBox().getWidth();
+                float pageHeigh = pdfdocument.getPage(page-1).getMediaBox().getHeight();
 
                 List<WordPositionSequence> wordUniversidad = searcher.findWordsFromAPage(page, "UNIVERSIDAD");
                 List<WordPositionSequence> wordPablo = searcher.findWordsFromAPage(page, "PABLO”");
