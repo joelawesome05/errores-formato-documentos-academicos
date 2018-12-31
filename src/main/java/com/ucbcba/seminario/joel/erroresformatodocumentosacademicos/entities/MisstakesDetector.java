@@ -91,6 +91,36 @@ public class MisstakesDetector {
                     String comment = "Por favor verifique: (Tamaño de la letra: 16 puntos - Fuente: Times New Roman, en mayúscula, negrilla y centrado).";
                     formatMistakes.add(hightlight(wordUnidad.get(0), wordCbba.get(0), content,comment,pageWidth, pageHeigh,page,String.valueOf(counter.incrementAndGet())));
                 }
+
+                List<WordPositionSequence> wordDepartamento = searcher.findWordsFromAPage(page, "Departamento");
+                List<String> departamentoWords = searcher.getWordsOfARow(page,wordDepartamento.get(0).getY());
+                List<WordPositionSequence> lastWordOnDepartamentoRow = searcher.findWordsFromAPage(page, departamentoWords.get(departamentoWords.size()-1));
+                lastWordOnDepartamentoRow = searcher.filterByY(lastWordOnDepartamentoRow,wordDepartamento.get(0).getY());
+                boolean b3 = coverMisstakes.isThereAnyMisstakeOnLineTreeOrFour(wordDepartamento,lastWordOnDepartamentoRow,pageWidth);
+                if (b3){
+                    StringBuilder contentB = new StringBuilder();
+                    for (String word: departamentoWords){
+                        contentB.append(word).append(" ");
+                    }
+                    String content = contentB.toString();
+                    String comment = "Por favor verifique: (Tamaño de la letra: 14 puntos - Fuente: Times New Roman, en minúscula, negrilla y centrado).";
+                    formatMistakes.add(hightlight(wordDepartamento.get(0), lastWordOnDepartamentoRow.get(lastWordOnDepartamentoRow.size()-1), content, comment,pageWidth, pageHeigh,page,String.valueOf(counter.incrementAndGet())));
+                }
+
+                List<WordPositionSequence> wordCarrera = searcher.findWordsFromAPage(page, "Carrera");
+                List<String> carreraWords = searcher.getWordsOfARow(page,wordCarrera.get(0).getY());
+                List<WordPositionSequence> lastWordOnCarreraRow = searcher.findWordsFromAPage(page, carreraWords.get(carreraWords.size()-1));
+                lastWordOnCarreraRow = searcher.filterByY(lastWordOnCarreraRow,wordCarrera.get(0).getY());
+                boolean b4 = coverMisstakes.isThereAnyMisstakeOnLineTreeOrFour(wordCarrera,lastWordOnCarreraRow,pageWidth);
+                if (b4){
+                    StringBuilder contentB = new StringBuilder();
+                    for (String word: carreraWords){
+                        contentB.append(word).append(" ");
+                    }
+                    String content = contentB.toString();
+                    String comment = "Por favor verifique: (Tamaño de la letra: 14 puntos - Fuente: Times New Roman, en minúscula, negrilla y centrado).";
+                    formatMistakes.add(hightlight(wordCarrera.get(0), lastWordOnCarreraRow.get(lastWordOnCarreraRow.size()-1), content,comment,pageWidth, pageHeigh,page,String.valueOf(counter.incrementAndGet())));
+                }
                 break;
             }
         }

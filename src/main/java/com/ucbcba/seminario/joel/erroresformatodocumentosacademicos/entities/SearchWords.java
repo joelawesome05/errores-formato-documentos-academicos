@@ -4,7 +4,10 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +83,62 @@ public class SearchWords {
         return getNumberOfTrues(bool1,bool2,bool3,bool4,bool5) >= 3;
     }
 
+    public List<String> getWordsOfARow(int page, float yReference) throws IOException {
+        final List<String> wordsFound = new ArrayList<String>();
+        PDFTextStripper stripper = new PDFTextStripper() {
+            @Override
+            protected void writeString(String string, List<TextPosition> textPositions) throws IOException {
+                String wordSeparator = getWordSeparator();
+                List<TextPosition> word = new ArrayList<>();
+                for (TextPosition text : textPositions) {
+                    String thisChar = text.getUnicode();
+                    if (thisChar != null) {
+                        if (thisChar.length() >= 1) {
+                            if (!thisChar.equals(wordSeparator)) {
+                                word.add(text);
+                            } else if (!word.isEmpty()) {
+                                if (word.get(0).getYDirAdj() == yReference) {
+                                    StringBuilder builder = new StringBuilder();
+                                    for (TextPosition textt : word) {
+                                        builder.append(textt.getUnicode());
+                                    }
+                                    wordsFound.add(builder.toString());
+                                }
+                                word.clear();
+                            }
+                        }
+                    }
+                }
+                if (!word.isEmpty()) {
+                    if (word.get(0).getYDirAdj() == yReference) {
+                        StringBuilder builder = new StringBuilder();
+                        for (TextPosition textt : word) {
+                            builder.append(textt.getUnicode());
+                        }
+                        wordsFound.add(builder.toString());
+                    }
+                    word.clear();
+                }
+
+            }
+        };
+        stripper.setSortByPosition(true);
+        stripper.setStartPage(page);
+        stripper.setEndPage(page);
+        Writer dummy = new OutputStreamWriter(new ByteArrayOutputStream());
+        stripper.writeText(pdfdocument, dummy);
+        return wordsFound;
+    }
+
+    public List<WordPositionSequence> filterByY(List<WordPositionSequence> words, float y){
+        List<WordPositionSequence> resp = new ArrayList<WordPositionSequence>();
+        for (WordPositionSequence word : words) {
+            if (word.getY() == y){
+                resp.add(word);
+            }
+        }
+        return resp;
+    }
 
 
 }

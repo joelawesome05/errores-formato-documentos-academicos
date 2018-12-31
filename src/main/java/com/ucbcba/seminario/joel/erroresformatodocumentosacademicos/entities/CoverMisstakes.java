@@ -58,4 +58,33 @@ public class CoverMisstakes {
         }
         return false;
     }
+
+    public boolean isThereAnyMisstakeOnLineTreeOrFour(List<WordPositionSequence> wordDepartamento, List<WordPositionSequence> lastWordOnDepartamentoRow, float pageWidth){
+        if (wordDepartamento.size() >= 1 && lastWordOnDepartamentoRow.size() >= 1 ){
+            int index = lastWordOnDepartamentoRow.size()-1;
+            if (!wordDepartamento.get(0).getFont().contains("Times") || !wordDepartamento.get(0).getFont().contains("New") || !wordDepartamento.get(0).getFont().contains("Roman")){
+                return true;
+            }
+            if (wordDepartamento.get(0).getFontSize() != 14){
+                return true;
+            }
+            if (!wordDepartamento.get(0).getFont().contains("Bold") ){
+                return true;
+            }
+            if (!lastWordOnDepartamentoRow.get(index).getFont().contains("Times") || !lastWordOnDepartamentoRow.get(index).getFont().contains("New") || !lastWordOnDepartamentoRow.get(index).getFont().contains("Roman")){
+                return true;
+            }
+            if (lastWordOnDepartamentoRow.get(index).getFontSize() != 14){
+                return true;
+            }
+            if (!lastWordOnDepartamentoRow.get(index).getFont().contains("Bold") ){
+                return true;
+            }
+            // Formula para ver si esta centrado
+            if (Math.abs((pageWidth - lastWordOnDepartamentoRow.get(index).getEndX()) - wordDepartamento.get(0).getX()) >= 20){
+                return true;
+            }
+        }
+        return false;
+    }
 }
