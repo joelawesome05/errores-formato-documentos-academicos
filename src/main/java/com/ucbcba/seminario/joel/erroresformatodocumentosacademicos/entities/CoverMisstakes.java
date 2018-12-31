@@ -36,7 +36,7 @@ public class CoverMisstakes {
             if (!wordUnidad.get(0).getFont().contains("Times") || !wordUnidad.get(0).getFont().contains("New") || !wordUnidad.get(0).getFont().contains("Roman")){
                 return true;
             }
-            if (wordUnidad.get(0).getFontSize() != 15){
+            if (wordUnidad.get(0).getFontSize() != 16){
                 return true;
             }
             if (!wordUnidad.get(0).getFont().contains("Bold") ){
@@ -45,7 +45,7 @@ public class CoverMisstakes {
             if (!wordCbba.get(0).getFont().contains("Times") || !wordCbba.get(0).getFont().contains("New") || !wordCbba.get(0).getFont().contains("Roman")){
                 return true;
             }
-            if (wordCbba.get(0).getFontSize() != 15){
+            if (wordCbba.get(0).getFontSize() != 16){
                 return true;
             }
             if (!wordCbba.get(0).getFont().contains("Bold") ){
