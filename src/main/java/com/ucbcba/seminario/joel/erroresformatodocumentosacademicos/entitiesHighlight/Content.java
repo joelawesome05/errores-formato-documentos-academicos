@@ -1,4 +1,4 @@
-package com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entities;
+package com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entitiesHighlight;
 
 public class Content {
     private String text;
