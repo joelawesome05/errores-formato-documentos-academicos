@@ -140,5 +140,42 @@ public class SearchWords {
         return resp;
     }
 
+    public List<WordPositionSequence> filterByGreaterY(List<WordPositionSequence> words, float y){
+        List<WordPositionSequence> resp = new ArrayList<WordPositionSequence>();
+        for (WordPositionSequence word : words) {
+            if (word.getY() > y){
+                resp.add(word);
+            }
+        }
+        return resp;
+    }
+
+    public List<WordPositionSequence> filterByLessY(List<WordPositionSequence> words, float y){
+        List<WordPositionSequence> resp = new ArrayList<WordPositionSequence>();
+        for (WordPositionSequence word : words) {
+            if (word.getY() < y){
+                resp.add(word);
+            }
+        }
+        return resp;
+    }
+
+    public List<String> getFirstWordsOfTittleTypeAuthorDate(int page) throws IOException {
+        List<String> resp = new ArrayList<String>();
+        PDFTextStripper pdfStripper = new PDFTextStripper();
+        pdfStripper.setStartPage(page);
+        pdfStripper.setEndPage(page);
+        pdfStripper.setParagraphStart("\n");
+        pdfStripper.setSortByPosition(true);
+        for (String line: pdfStripper.getText(pdfdocument).split(pdfStripper.getParagraphStart()))
+        {
+            String arr[] = line.split(" ", 2);
+            if (!arr[0].equals("UNIVERSIDAD") && !arr[0].equals("UNIDAD") && !arr[0].equals("Departamento") && !arr[0].equals("Carrera") && !arr[0].equals("") && !arr[0].equals("Cochabamba")){
+                resp.add(arr[0]);
+            }
+        }
+        return resp;
+    }
+
 
 }
