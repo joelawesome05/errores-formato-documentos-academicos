@@ -83,7 +83,7 @@ public class FileController {
         String dirPdfFile = "uploads/"+fileName;
         PDDocument pdfdocument = PDDocument.load( new File(dirPdfFile) );
         MisstakesDetector misstakesDetector = new MisstakesDetector(pdfdocument);
-        misstakesDetector.analyzeCoverPage();
+        misstakesDetector.analyzeAllDocument();
         formatMistakes = misstakesDetector.getFormatMistakes();
         return formatMistakes;
     }

@@ -83,6 +83,13 @@ public class SearchWords {
         return getNumberOfTrues(bool1,bool2,bool3,bool4,bool5) >= 3;
     }
 
+    public boolean isTheGeneralIndexInThisPage(int page) throws IOException {
+        boolean bool1,bool2;
+        bool1 = isTheWordInThePage(page,".......................................................................................");
+        bool2 = isTheWordInThePage(page,"ÍNDICE");
+        return getNumberOfTrues(bool1,bool2) >= 1;
+    }
+
     public List<String> getWordsOfARow(int page, float yReference) throws IOException {
         final List<String> wordsFound = new ArrayList<String>();
         PDFTextStripper stripper = new PDFTextStripper() {
