@@ -16,11 +16,16 @@ public class MisstakesDetector {
     private CoverMisstakes coverMisstakes;
     private final AtomicLong counter = new AtomicLong();
     private List<FormatMistake> formatMistakes = new ArrayList<>();
+    private int imageNumber;
+    private int tableNumber;
+
 
     public MisstakesDetector(PDDocument pdfdocument){
         this.pdfdocument = pdfdocument;
         coverMisstakes = new CoverMisstakes();
         searcher = new SearchWords(pdfdocument);
+        imageNumber = 1;
+        tableNumber = 1;
     }
 
     public PDDocument getPdfdocument() {
@@ -74,9 +79,35 @@ public class MisstakesDetector {
                 continue;
             }
             if (page==generalIndexPage){
-                analyzeFooterNumeration(page);
+
                 continue;
             }
+            boolean isIndexPage = searcher.isTheWordInThePage(page,".................");
+            if (isIndexPage){
+                continue;
+            }
+
+            List<String> ImagesOrTablesTittles = new ArrayList<String>();
+            ImagesOrTablesTittles = searcher.getTittlesImagesOrTables(page);
+            if (ImagesOrTablesTittles.size() % 2 == 0) {
+                int index = 0;
+                while (index < ImagesOrTablesTittles.size()) {
+                    List<WordPositionSequence> ImageOrTable = searcher.findWordsFromAPage(page, ImagesOrTablesTittles.get(index));
+                    List<WordPositionSequence> Tittle = searcher.findWordsFromAPage(page, ImagesOrTablesTittles.get(index + 1));
+                    analyzeTableImageTittle(ImageOrTable, ImagesOrTablesTittles.get(index), page);
+                    analyzeTableImage(Tittle, ImagesOrTablesTittles.get(index + 1), page);
+                    index = index + 2;
+                }
+            }
+            List<String> ImagesOrTablesSources = new ArrayList<String>();
+            ImagesOrTablesSources = searcher.getSourcecsImagesOrTables(page);
+            int index = 0;
+            while (index < ImagesOrTablesSources.size()) {
+                List<WordPositionSequence> Source = searcher.findWordsFromAPage(page, ImagesOrTablesSources.get(index));
+                analyzeTableImageSource(Source, ImagesOrTablesSources.get(index), page);
+                index = index + 1;
+            }
+
             analyzeFooterNumeration(page);
         }
 
@@ -283,8 +314,119 @@ public class MisstakesDetector {
                 formatMistakes.add(hightlight(numberPage.get(numberPage.size()-1), numberPage.get(numberPage.size()-1), content,comment,pageWidth, pageHeigh,page,String.valueOf(counter.incrementAndGet())));
             }
         }
+    }
 
+    public void analyzeTableImageTittle(List<WordPositionSequence> imageOrTable, String imageOrTableWord, int page) throws IOException {
+        List<String> comments = new ArrayList<>();
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        if (imageOrTableWord.contains("Figura")){
+            if (!imageOrTableWord.contains(Integer.toString(imageNumber))){
+                comments.add("Numeración: debería ser Figura "+Integer.toString(imageNumber));
+            }
+            imageNumber++;
+        }
+        if (imageOrTableWord.contains("Tabla")){
+            if (!imageOrTableWord.contains(Integer.toString(tableNumber))){
+                comments.add("Numeración: debería ser Tabla "+Integer.toString(imageNumber));
+            }
+            tableNumber++;
+        }
+        if (!imageOrTable.get(0).getFont().contains("Times") || !imageOrTable.get(0).getFont().contains("New") || !imageOrTable.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (imageOrTable.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (!imageOrTable.get(0).getFont().contains("Bold") ){
+            comments.add("Negrilla");
+        }
+        // Formula para ver si esta centrado
+        if (Math.abs((pageWidth - imageOrTable.get(0).getEndX()) - imageOrTable.get(0).getX()) >= 20){
+            comments.add("Centrado");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = imageOrTableWord;
+            formatMistakes.add(hightlight(imageOrTable.get(0), imageOrTable.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
 
+    public void analyzeTableImage(List<WordPositionSequence> imageOrTable, String imageOrTableWord, int page) throws IOException {
+        List<String> comments = new ArrayList<>();
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        if (!imageOrTable.get(0).getFont().contains("Times") || !imageOrTable.get(0).getFont().contains("New") || !imageOrTable.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (imageOrTable.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (!imageOrTable.get(0).getFont().contains("Bold") ){
+            comments.add("Negrilla");
+        }
+        // Formula para ver si esta centrado
+        if (Math.abs((pageWidth - imageOrTable.get(0).getEndX()) - imageOrTable.get(0).getX()) >= 20){
+            comments.add("Centrado");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = imageOrTableWord;
+            formatMistakes.add(hightlight(imageOrTable.get(0), imageOrTable.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
+
+    public void analyzeTableImageSource(List<WordPositionSequence> source, String sourceWord, int page) throws IOException {
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        for (int index=0;index<source.size();index++) {
+            List<String> comments = new ArrayList<>();
+            if (!source.get(index).getFont().contains("Times") || !source.get(index).getFont().contains("New") || !source.get(index).getFont().contains("Roman")) {
+                comments.add("Fuente: Times New Roman");
+            }
+            if (source.get(index).getFontSize() != 12) {
+                comments.add("Tamaño de la letra: 12 puntos");
+            }
+            if (source.get(index).getFont().contains("Bold")) {
+                comments.add("No negrilla");
+            }
+            // Formula para ver si esta centrado
+            if (Math.abs((pageWidth - source.get(index).getEndX()) - source.get(index).getX()) >= 20) {
+                comments.add("Centrado");
+            }
+            if (comments.size() != 0) {
+                StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+                for (int i = 0; i < comments.size(); i++) {
+                    if (i != 0) {
+                        commentStr.append(" - ").append(comments.get(i));
+                    } else {
+                        commentStr.append(comments.get(i));
+                    }
+                }
+                commentStr.append(" ).");
+                String comment = commentStr.toString();
+                String content = sourceWord;
+                formatMistakes.add(hightlight(source.get(index), source.get(index), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+            }
+        }
     }
 
 }

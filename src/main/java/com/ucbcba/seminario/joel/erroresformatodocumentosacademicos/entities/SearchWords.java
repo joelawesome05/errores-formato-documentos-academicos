@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SearchWords {
     private PDDocument pdfdocument;
@@ -181,6 +183,53 @@ public class SearchWords {
                 resp.add(arr[0]);
             }
         }
+        return resp;
+    }
+
+    public List<String> getTittlesImagesOrTables(int page) throws IOException {
+        List<String> resp = new ArrayList<String>();
+        PDFTextStripper pdfStripper = new PDFTextStripper();
+        pdfStripper.setStartPage(page);
+        pdfStripper.setEndPage(page);
+        pdfStripper.setParagraphStart("\n");
+        pdfStripper.setSortByPosition(true);
+        boolean foundTittle = false;
+        for (String line: pdfStripper.getText(pdfdocument).split(pdfStripper.getParagraphStart()))
+        {
+            String arr[] = line.split(" ", 2);
+            if (!arr[0].equals("")){
+                if (foundTittle){
+                    resp.add(line.trim());
+                    foundTittle = false;
+                }
+                if (arr[0].equals("Tabla") || arr[0].equals("Figura")){
+                    resp.add(line.trim());
+                    foundTittle=true;
+                }
+            }
+        }
+        return resp;
+    }
+
+    public List<String> getSourcecsImagesOrTables(int page) throws IOException {
+        List<String> resp = new ArrayList<String>();
+        PDFTextStripper pdfStripper = new PDFTextStripper();
+        pdfStripper.setStartPage(page);
+        pdfStripper.setEndPage(page);
+        pdfStripper.setParagraphStart("\n");
+        pdfStripper.setSortByPosition(true);
+        for (String line: pdfStripper.getText(pdfdocument).split(pdfStripper.getParagraphStart()))
+        {
+            String arr[] = line.split(" ", 2);
+            if (!arr[0].equals("")){
+                if (arr[0].equals("Fuente:") ){
+                    resp.add(line);
+                }
+            }
+        }
+        Set<String> set = new HashSet<>(resp);
+        resp.clear();
+        resp.addAll(set);
         return resp;
     }
 
