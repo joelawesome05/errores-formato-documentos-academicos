@@ -2,9 +2,11 @@ package com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entities;
 
 import com.ucbcba.seminario.joel.erroresformatodocumentosacademicos.entitiesHighlight.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -73,13 +75,14 @@ public class MisstakesDetector {
     public void analyzeAllDocument() throws IOException {
         int coverPage = getCoverPage();
         int generalIndexPage = getGeneralIndex();
+        int annexedPage=1;
         for (int page = 1; page <= pdfdocument.getNumberOfPages(); page++) {
             if (page==coverPage){
                 analyzeCoverPage(page);
                 continue;
             }
             if (page==generalIndexPage){
-
+                analyzeGeneralIndexPage(page);
                 continue;
             }
             boolean isIndexPage = searcher.isTheWordInThePage(page,".................");
@@ -106,6 +109,14 @@ public class MisstakesDetector {
                 List<WordPositionSequence> Source = searcher.findWordsFromAPage(page, ImagesOrTablesSources.get(index));
                 analyzeTableImageSource(Source, ImagesOrTablesSources.get(index), page);
                 index = index + 1;
+            }
+
+            boolean isAnnexedPage1 = searcher.isTheWordInThePage(page,"Anexo");
+            boolean isAnnexedPage2 = searcher.isTheWordInThePage(page,"ANEXO");
+            if (isAnnexedPage1 || isAnnexedPage2){
+                analyzeFooterNumeration(annexedPage);
+                annexedPage++;
+                continue;
             }
 
             analyzeFooterNumeration(page);
@@ -428,5 +439,289 @@ public class MisstakesDetector {
             }
         }
     }
+
+
+    public int countChar(String str, char c)
+    {
+        int count = 0;
+
+        for(int i=0; i < str.length(); i++)
+        {    if(str.charAt(i) == c)
+            count++;
+        }
+
+        return count;
+    }
+
+    public void analyzeGeneralIndexPage(int page) throws IOException {
+        PDFTextStripper pdfStripper = new PDFTextStripper();
+        pdfStripper.setStartPage(page);
+        pdfStripper.setEndPage(page);
+        pdfStripper.setParagraphStart("\n");
+        pdfStripper.setSortByPosition(true);
+        for (String line : pdfStripper.getText(pdfdocument).split(pdfStripper.getParagraphStart())) {
+            String arr[] = line.split(" ", 2);
+            if (!arr[0].equals("")) {
+                if (line.trim().length() - line.trim().replaceAll(" ", "").length() >= 1) {
+                    List<WordPositionSequence> words = searcher.findWordsFromAPage(page, line.trim());
+                    if (words.size() == 0) {
+                        String wordsToSearch = line.trim();
+                        wordsToSearch = Normalizer.normalize(wordsToSearch, Normalizer.Form.NFD);
+                        wordsToSearch = wordsToSearch.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+                        words = searcher.findWordsFromAPage(page, wordsToSearch);
+                        if (words.size() == 0) {
+                            continue;
+                        }
+                    }
+                    if (line.trim().contains("ÍNDICE GENERAL") || line.trim().contains("Índice General") || line.trim().contains("Índice general")) {
+                        analyzeGeneralIndex(words, line.trim(), page);
+                        continue;
+                    }
+                    int numberOfPoints = countChar(arr[0], '.');
+                    if (numberOfPoints == 0) {
+                        analyzeChapter(words, line.trim(), page, arr[0]);
+                        continue;
+                    }
+                    if (numberOfPoints == 1) {
+                        analyzeOneDigitChapter(words, line.trim(), page, arr[1]);
+                        continue;
+                    }
+                    if (numberOfPoints == 2) {
+                        analyzeTwoDigitSubchapter(words, line.trim(), page, arr[1]);
+                        continue;
+                    }
+                    if (numberOfPoints == 3) {
+                        analyzeThreeDigitSection(words, line.trim(), page, arr[1]);
+                        continue;
+                    }
+                    if (numberOfPoints == 4) {
+                        analyzeFourDigitSubsection(words, line.trim(), page, arr[1]);
+                        continue;
+                    }
+                }
+
+            }
+        }
+    }
+
+    public void analyzeGeneralIndex(List<WordPositionSequence> generalIndex, String word, int page){
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        List<String> comments = new ArrayList<>();
+        if (!generalIndex.get(0).getFont().contains("Times") || !generalIndex.get(0).getFont().contains("New") || !generalIndex.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (generalIndex.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (!word.equals("ÍNDICE GENERAL")){
+            comments.add("Mayúscula");
+        }
+        if (!generalIndex.get(0).getFont().contains("Bold") ){
+            comments.add("Negrilla");
+        }
+        // Formula para ver si esta centrado
+        if (Math.abs((pageWidth - generalIndex.get(0).getEndX()) - generalIndex.get(0).getX()) >= 20) {
+            comments.add("Centrado");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = word;
+            formatMistakes.add(hightlight(generalIndex.get(0), generalIndex.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
+
+    public void analyzeChapter(List<WordPositionSequence> wordPositionSequences, String word, int page,String firstWord){
+        if (!firstWord.equals("Anexo") && !firstWord.equals("ANEXO")) {
+            float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+            float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+            List<String> comments = new ArrayList<>();
+            if (!wordPositionSequences.get(0).getFont().contains("Times") || !wordPositionSequences.get(0).getFont().contains("New") || !wordPositionSequences.get(0).getFont().contains("Roman")) {
+                comments.add("Fuente: Times New Roman");
+            }
+            if (wordPositionSequences.get(0).getFontSize() != 12) {
+                comments.add("Tamaño de la letra: 12 puntos");
+            }
+            if (!Character.isUpperCase(firstWord.charAt(1))) {
+                comments.add("Todo en mayúscula");
+            }
+            if (!wordPositionSequences.get(0).getFont().contains("Bold")) {
+                comments.add("Negrilla");
+            }
+            if (wordPositionSequences.get(0).getX() < 110) {
+                comments.add("Alineado al margen izquierdo");
+            }
+            if (comments.size() != 0) {
+                StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+                for (int i = 0; i < comments.size(); i++) {
+                    if (i != 0) {
+                        commentStr.append(" - ").append(comments.get(i));
+                    } else {
+                        commentStr.append(comments.get(i));
+                    }
+                }
+                commentStr.append(" ).");
+                String comment = commentStr.toString();
+                String content = word;
+                formatMistakes.add(hightlight(wordPositionSequences.get(0), wordPositionSequences.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+            }
+        }
+    }
+
+    public void analyzeOneDigitChapter(List<WordPositionSequence> wordPositionSequences, String word, int page, String chpaterWord){
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        List<String> comments = new ArrayList<>();
+        if (word.contains("INTRODUCCIÓN") || word.contains("INTRODUCCIÓN") || word.contains("INTRODUCCION") || word.contains("Introducción") || word.contains("Introduccion") || word.contains("CONCLUSIONES") || word.contains("Conclusiones")|| word.contains("RECOMENDACIONES") || word.contains("Recomendaciones")|| word.contains("BIBLIOGRAFÍA") || word.contains("BIBLIOGRAFIA") || word.contains("BIBLIOGRAFÍA") || word.contains("Bibliografía") || word.contains("Bibliografia")|| word.contains("ANEXOS") || word.contains("Anexos")){
+            comments.add("No tenga numeración");
+        }
+        if (!wordPositionSequences.get(0).getFont().contains("Times") || !wordPositionSequences.get(0).getFont().contains("New") || !wordPositionSequences.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (wordPositionSequences.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (!Character.isUpperCase(chpaterWord.charAt(1))) {
+            comments.add("Todo en mayúscula");
+        }
+        if (!wordPositionSequences.get(0).getFont().contains("Bold") ){
+            comments.add("Negrilla");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = word;
+            formatMistakes.add(hightlight(wordPositionSequences.get(0), wordPositionSequences.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
+
+    public void analyzeTwoDigitSubchapter(List<WordPositionSequence> wordPositionSequences, String word, int page, String subchpaterWord){
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        List<String> comments = new ArrayList<>();
+        if (!wordPositionSequences.get(0).getFont().contains("Times") || !wordPositionSequences.get(0).getFont().contains("New") || !wordPositionSequences.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (wordPositionSequences.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (Character.isUpperCase(subchpaterWord.charAt(1))) {
+            comments.add("Minúscula");
+        }
+        if (!wordPositionSequences.get(0).getFont().contains("Bold") ){
+            comments.add("Negrilla");
+        }
+        if (wordPositionSequences.get(0).getX() < 130) {
+            comments.add("Tenga una sangría");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = word;
+            formatMistakes.add(hightlight(wordPositionSequences.get(0), wordPositionSequences.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
+
+    public void analyzeThreeDigitSection(List<WordPositionSequence> wordPositionSequences, String word, int page, String sectionWord){
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        List<String> comments = new ArrayList<>();
+        if (!wordPositionSequences.get(0).getFont().contains("Times") || !wordPositionSequences.get(0).getFont().contains("New") || !wordPositionSequences.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (wordPositionSequences.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (Character.isUpperCase(sectionWord.charAt(1))) {
+            comments.add("Minúscula");
+        }
+        if (!wordPositionSequences.get(0).getFont().contains("Bold") ){
+            comments.add("Negrilla");
+        }
+        if (!wordPositionSequences.get(0).getFont().contains("Italic") ){
+            comments.add("Cursiva");
+        }
+        if (wordPositionSequences.get(0).getX() < 165) {
+            comments.add("Tenga dos sangrías");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = word;
+            formatMistakes.add(hightlight(wordPositionSequences.get(0), wordPositionSequences.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
+
+    public void analyzeFourDigitSubsection(List<WordPositionSequence> wordPositionSequences, String word, int page, String subsectionWord){
+        float pageWidth = pdfdocument.getPage(page - 1).getMediaBox().getWidth();
+        float pageHeigh = pdfdocument.getPage(page - 1).getMediaBox().getHeight();
+        List<String> comments = new ArrayList<>();
+        if (!wordPositionSequences.get(0).getFont().contains("Times") || !wordPositionSequences.get(0).getFont().contains("New") || !wordPositionSequences.get(0).getFont().contains("Roman")){
+            comments.add("Fuente: Times New Roman");
+        }
+        if (wordPositionSequences.get(0).getFontSize() != 12){
+            comments.add("Tamaño de la letra: 12 puntos");
+        }
+        if (Character.isUpperCase(subsectionWord.charAt(1))) {
+            comments.add("Minúscula");
+        }
+        if (wordPositionSequences.get(0).getFont().contains("Bold") ){
+            comments.add("No tenga negrilla");
+        }
+        if (!wordPositionSequences.get(0).getFont().contains("Italic") ){
+            comments.add("Cursiva");
+        }
+        if (wordPositionSequences.get(0).getX() < 200) {
+            comments.add("Tenga tres sangrías");
+        }
+        if (comments.size() != 0) {
+            StringBuilder commentStr = new StringBuilder("Por favor verifique: ( ");
+            for (int i = 0; i < comments.size(); i++) {
+                if (i != 0) {
+                    commentStr.append(" - ").append(comments.get(i));
+                } else {
+                    commentStr.append(comments.get(i));
+                }
+            }
+            commentStr.append(" ).");
+            String comment = commentStr.toString();
+            String content = word;
+            formatMistakes.add(hightlight(wordPositionSequences.get(0), wordPositionSequences.get(0), content, comment, pageWidth, pageHeigh, page, String.valueOf(counter.incrementAndGet())));
+        }
+    }
+
 
 }

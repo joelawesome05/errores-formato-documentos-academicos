@@ -223,7 +223,7 @@ public class SearchWords {
             String arr[] = line.split(" ", 2);
             if (!arr[0].equals("")){
                 if (arr[0].equals("Fuente:") ){
-                    resp.add(line);
+                    resp.add(line.trim());
                 }
             }
         }
