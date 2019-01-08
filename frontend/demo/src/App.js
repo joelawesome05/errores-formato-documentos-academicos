@@ -142,28 +142,12 @@ class App extends Component<Props, State> {
             {pdfDocument => (
               <PdfHighlighter
                 pdfDocument={pdfDocument}
-                enableAreaSelection={event => event.altKey}
                 onScrollChange={resetHash}
                 scrollRef={scrollTo => {
                   this.scrollViewerTo = scrollTo;
 
                   this.scrollToHighlightFromHash();
                 }}
-                onSelectionFinished={(
-                  position,
-                  content,
-                  hideTipAndSelection,
-                  transformSelection
-                ) => (
-                    <Tip
-                      onOpen={transformSelection}
-                      onConfirm={comment => {
-                        this.addHighlight({ content, position, comment });
-
-                        hideTipAndSelection();
-                      }}
-                    />
-                  )}
                 highlightTransform={(
                   highlight,
                   index,
