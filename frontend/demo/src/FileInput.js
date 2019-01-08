@@ -48,7 +48,7 @@ class FileInput extends Component {
         return (
             <div style={{ color: "black" }}>
                 <center>
-                    <h3> Sistema de ayuda para la detección y corrección de errores de formato en trabajos académicos</h>
+                    <h3> Sistema de ayuda para la detección y corrección de errores de formato en trabajos académicos</h3>
                 </center>
                 <form onSubmit={this.handleSubmit} id="singleUploadForm" name="singleUploadForm">
                     <label>
