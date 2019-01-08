@@ -19,6 +19,11 @@ function Sidebar({ highlights, resetHighlights }: Props) {
     <div className="sidebar" style={{ width: "25vw" }}>
       <div className="description" style={{ padding: "1rem" }}>
         <h2 style={{ marginBottom: "1rem" }}>Reporte de errores</h2>
+        <p style={{ fontSize: "0.7rem" }}>
+          <a href="/">
+            Volver al Inicio
+          </a>
+        </p>
       </div>
 
       <ul className="sidebar__highlights">
